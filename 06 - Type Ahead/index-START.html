@@ -8,7 +8,7 @@
 <body>
 
   <form class="search-form">
-    <input type="text" class="search" placeholder="City or State">
+    <input name="search" type="text" class="search" placeholder="City or State">
     <ul class="suggestions">
       <li>Filter for a city</li>
       <li>or a state</li>
@@ -16,6 +16,61 @@
   </form>
 <script>
 const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+
+const cities = [];
+const searchInput = document.querySelector('.search');
+const suggestions = document.querySelector('.suggestions');
+const form = document.querySelector('.search-form');
+
+fetch(endpoint)
+  .then(blob => blob.json())
+  .then(data => cities.push(...data))
+
+function findMatches(wordToMatch, cities) {
+  return cities.filter(place => {
+    // here we need to figure out if the city or state matches what was searched
+    const regex = new RegExp(wordToMatch, 'gi');
+    return place.city.match(regex) || place.state.match(regex);
+  })
+}
+
+function numberwithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function displayMatches(value) {
+  const matchArray = findMatches(value, cities);
+  const html = matchArray.map(place => {
+    const regex = new RegExp(value, 'gi');
+    const cityName = place.city.replace(regex, `<span class="hl">${value}</span>`);
+    const stateName = place.state.replace(regex, `<span class="hl">${value}</span>`);
+    return `
+      <li>
+        <span class="name"> ${cityName}, ${stateName}</span>
+        <span class=population>${numberwithCommas(place.population)}</span>
+      </li>
+    `;
+  }).join('');
+
+  suggestions.innerHTML = html;
+}
+
+
+searchInput.addEventListener('change', () => displayMatches(searchInput.value));
+searchInput.addEventListener('keyup', (e) => {
+  if (e.keyCode != 13) {displayMatches(searchInput.value)
+  }
+});
+
+// Code for input value reset on submit added
+form.addEventListener('submit', function(e){
+  e.preventDefault();
+  const form = new FormData(e.target);
+  const formula = form.get("search");
+  
+  displayMatches(formula)
+  searchInput.value = '';
+});
 
 </script>
 </body>
