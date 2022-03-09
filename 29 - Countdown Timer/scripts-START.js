@@ -45,7 +45,6 @@ function displayEndTime(timestamp) {
 
 function startTimer() {
     const seconds = parseInt(this.dataset.time);
-    // if (seconds < 0) return // stop the function if seconds goes in negative
     timer(seconds)
 }
 
